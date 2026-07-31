@@ -99,10 +99,10 @@ def get_test_data() -> dict[str, Any] | None:
 '''
 Backend API 테스트 코드
 '''
-# def main():
-#     df = getTestData()
-#     print(df)
-#
-#
-# if __name__ == "__main__":
-#     main()
+def main():
+    df = getTestData()
+    print(df)
+
+
+if __name__ == "__main__":
+    main()
