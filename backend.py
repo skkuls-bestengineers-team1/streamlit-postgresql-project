@@ -8,14 +8,21 @@ from typing import Any
 import psycopg
 from psycopg.rows import dict_row
 from dotenv import load_dotenv
+'''
+아래 load_database_config() 주석의 @description 참고하여
+꼭 작성 부탁드립니다.
 
+각 함수마다 try-exception 처리 부탁드립니다.
+
+
+'''
 BASE_DIR = Path(__file__).resolve().parent # 현재 위치
 ENV_PATH = BASE_DIR / ".env"
 
 '''
 @name : loading database config
 @author : choiminjoeng
-@date : 2020-07-19
+@date : 2020-07-31
 @description : 프로젝트의 .env 파일에서 PostgreSQL 접속 설정을 읽는다.
 '''
 def load_database_config() -> dict[str, str | int]:
