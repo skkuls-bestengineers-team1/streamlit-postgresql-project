@@ -1,15 +1,23 @@
 import streamlit as st
-import pandas as pd
-from backend import get_test_data
+import altair as alt
+
+from backend import (
+    get_month_list,
+    get_genre_list,
+    get_monthly_audience,
+    get_scatter_data,
+    get_nation_audience,
+    get_nation_sales,
+    get_genre_sales,
+)
+
 
 '''
-
 아래 강사님께서 작성해주신 주석 참고하여 작성 부탁드립니다.
 
 데이터 로딩(loading) 시 null or '' or "" 밸리데이션 처리 부탁드립니다.
-
-부득이하게 
 '''
+
 # ------------------------------------------------------------
 # 1. 페이지 기본 설정
 # ------------------------------------------------------------
@@ -18,171 +26,203 @@ from backend import get_test_data
 # layout="wide": 화면을 넓게 사용
 # ------------------------------------------------------------
 st.set_page_config(
-    page_title='Streamlit lecture Ex1',
+    page_title='영화 박스오피스 대시보드',
     layout='wide',
 )
 
-### Frontend Sample
-if st.button("현재 DB 시간 조회"):
-    try:
-        test_data = get_test_data()
-        st.write(test_data)
-    except ValueError as error:
-        print('Value Error가 발생하였습니다.')
+st.title('영화 박스오피스 대시보드')
+st.caption('월별 관객 · 국가별 관객 · 국가/장르별 매출 시각화')
 
-# ------------------------------------------------------------
-# 2. 제목 출력
-# ------------------------------------------------------------
-st.title('Ex1 dataframe 표시')
-st.write(
-    '''
-    streamlit 기본 출력방법
-    pandas dataframe을 화면에 출력
-    '''
+
+
+st.sidebar.header('데이터 필터링')
+
+try:
+    month_options = get_month_list()
+    genre_options = get_genre_list()
+except Exception as error:
+    st.error(f'필터 데이터를 불러오지 못했습니다: {error}')
+    st.stop()
+
+if not month_options:
+    st.warning('월 데이터가 없습니다.')
+    st.stop()
+
+st.sidebar.info('월 범위 / 장르를 선택하세요')
+
+start_month, end_month = st.sidebar.select_slider(
+    '월 범위 선택',
+    options=month_options,
+    value=(month_options[0], month_options[-1]),
+)
+selected_months = [
+    month for month in month_options if start_month <= month <= end_month
+]
+
+selected_genres = st.sidebar.multiselect(
+    '장르 선택',
+    options=genre_options,
+    default=genre_options,
+    help='비우면 전체 장르로 조회합니다.',
 )
 
-# ------------------------------------------------------------
-# 3. 샘플 학생 성적 데이터 생성
-# ------------------------------------------------------------
-# 실제 수업에서는 처음부터 외부 CSV 파일을 사용하면 준비 과정이 복잡할 수 있다.
-# 따라서 첫 실습에서는 코드 안에서 직접 데이터를 만든다.
-# ------------------------------------------------------------
-student_data = {
-    "이름": [
-        "김민수", "이서연", "박지훈", "최유진", "정현우",
-        "한지민", "오세훈", "강다은", "윤태호", "임수진"
-    ],
-    "반": [
-        "A반", "A반", "A반", "B반", "B반",
-        "B반", "C반", "C반", "C반", "C반"
-    ],
-    "Python": [85, 92, 76, 88, 67, 95, 71, 84, 90, 79],
-    "Data": [78, 89, 82, 91, 73, 96, 68, 87, 94, 81],
-    "AI": [80, 94, 75, 86, 70, 98, 72, 85, 91, 77]
-}
 
-df = pd.DataFrame(student_data)
+#백엔드 호출
+try:
+    monthly_df = get_monthly_audience(selected_months, selected_genres)
+    scatter_df = get_scatter_data(selected_months, selected_genres)
+    nation_audience_df = get_nation_audience(selected_months, selected_genres)
+    nation_sales_df = get_nation_sales(selected_months, selected_genres)
+    genre_sales_df = get_genre_sales(selected_months, selected_genres)
+except Exception as error:
+    st.error(f'차트 데이터를 불러오지 못했습니다: {error}')
+    st.stop()
 
-# ------------------------------------------------------------
-# 4. 파생 컬럼 만들기
-# ------------------------------------------------------------
-# 총점 = Python + Data + AI
-# 평균 = 총점 / 3
-# 결과 = 평균이 80점 이상이면 "통과", 아니면 "보충"
-# ------------------------------------------------------------
-df["총점"] = df["Python"] + df["Data"] + df["AI"]
-df["평균"] = df["총점"] / 3
 
-df["결과"] = df["평균"].apply(
-    lambda score: "통과" if score >= 80 else "보충"
+
+total_audience = int(monthly_df['관객수'].sum()) if not monthly_df.empty else 0
+movie_count = int(scatter_df['영화명'].nunique()) if not scatter_df.empty else 0
+top_movie = (
+    scatter_df.sort_values('관객수', ascending=False).iloc[0]['영화명']
+    if not scatter_df.empty
+    else '-'
+)
+avg_sales = int(scatter_df['매출액'].mean()) if not scatter_df.empty else 0
+
+kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+kpi1.metric('선택된 영화 수', f'{movie_count:,} 편')
+kpi2.metric('기간 내 관객 1위', top_movie)
+kpi3.metric('총 관객수', f'{total_audience:,} 명')
+kpi4.metric('평균 매출액', f'{avg_sales:,.0f} 원')
+
+
+tab1, tab2, tab3 = st.tabs(
+    [
+        'Tab1. 월별 관객수 / 산점도',
+        'Tab2. 국가별 관객수',
+        'Tab3. 국가·장르별 매출',
+    ]
 )
 
-# ------------------------------------------------------------
-# 5. 원본 데이터 출력
-# ------------------------------------------------------------
-st.subheader('1. 학생 성적 데이터')
-st.dataframe(df,use_container_width=True)
-
-row_count = df.shape[0]
-column_count = df.shape[1]
-
-st.write(f'전체 학생 수: {row_count}명')
-st.write(f'전체 컬럼 수: {column_count}개')
-
-st.write('컬럼 목록:')
-st.write(df.columns.tolist())
-
-# ------------------------------------------------------------
-# 6. 기본 정보 출력
-# ------------------------------------------------------------
 
 
-# ------------------------------------------------------------
-# 7. 주요 지표 계산
-# ------------------------------------------------------------
-# 평균 점수
-class_average = df["평균"].mean()
+with tab1:
+    left, right = st.columns(2)
 
-# 최고 평균 점수
-max_average = df["평균"].max()
+    with left:
+        st.subheader('월별 영화 관객수')
+        if monthly_df.empty:
+            st.info('선택한 조건에 해당하는 데이터가 없습니다.')
+        else:
+            chart_df = monthly_df.rename(columns={'월': 'month', '관객수': 'audience'})
+            bar = (
+                alt.Chart(chart_df)
+                .mark_bar(color='#3b82f6')
+                .encode(
+                    x=alt.X('month:N', title='월', sort=month_options),
+                    y=alt.Y('audience:Q', title='관객수'),
+                    tooltip=['month', 'audience'],
+                )
+                .properties(height=360)
+            )
+            st.altair_chart(bar, use_container_width=True)
+            st.dataframe(monthly_df, use_container_width=True)
 
-# 최고 점수 학생
-top_student = df.loc[df["평균"].idxmax(), "이름"]
-
-# 통과 학생 수
-pass_count = (df["결과"] == "통과").sum()
-
-# 보충 학생 수
-fail_count = (df["결과"] == "보충").sum()
-
-# ------------------------------------------------------------
-# 8. 주요 지표를 카드 형태로 출력
-# ------------------------------------------------------------
-
-st.subheader('3. 주요 요약 지표')
-
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.metric(
-        label='전체 학생 수',
-        value=f'{row_count}명'
-    )
-
-with col2:
-    st.metric(
-        label='전체 평균 학생',
-        value=f'{class_average:.1f}명'
-    )
-
-with col3:
-    st.metric(
-        label='최고 평균 학생',
-        value=f'{top_student}'
-    )
-
-
-with col4:
-    st.metric(
-        label='통과 학생 수',
-        value=f'{pass_count}명'
-    )
+    with right:
+        st.subheader('산점도 (스크린수 × 관객수)')
+        if scatter_df.empty:
+            st.info('선택한 조건에 해당하는 데이터가 없습니다.')
+        else:
+            scatter = (
+                alt.Chart(scatter_df)
+                .mark_circle(size=80, opacity=0.7)
+                .encode(
+                    x=alt.X('스크린수:Q', title='스크린수'),
+                    y=alt.Y('관객수:Q', title='관객수'),
+                    color=alt.Color('대표국적:N', title='대표국적'),
+                    tooltip=['영화명', '월', '스크린수', '관객수', '매출액', '대표국적', '장르'],
+                )
+                .properties(height=360)
+            )
+            st.altair_chart(scatter, use_container_width=True)
+            st.dataframe(
+                scatter_df[
+                    ['월', '영화명', '스크린수', '관객수', '매출액', '대표국적', '장르']
+                ],
+                use_container_width=True,
+            )
 
 
 
-# ------------------------------------------------------------
-# 9. 조건 필터링
-# ------------------------------------------------------------
-# 평균이 80점 이상인 학생만 따로 추출한다.
-# 이 부분은 이후 실습에서 사용자 입력 필터링으로 확장된다.
-# ------------------------------------------------------------
+with tab2:
+    st.subheader('국가별 관객수')
+    if nation_audience_df.empty:
+        st.info('선택한 조건에 해당하는 데이터가 없습니다.')
+    else:
+        col_chart, col_table = st.columns([1.2, 1])
+        with col_chart:
+            pie = (
+                alt.Chart(nation_audience_df)
+                .mark_arc(innerRadius=50)
+                .encode(
+                    theta=alt.Theta('관객수:Q'),
+                    color=alt.Color(
+                        '국가그룹:N',
+                        title='국가그룹',
+                        scale=alt.Scale(
+                            domain=['한국', '미국', '기타'],
+                            range=['#2563eb', '#f59e0b', '#94a3b8'],
+                        ),
+                    ),
+                    tooltip=['국가그룹', '관객수'],
+                )
+                .properties(height=400)
+            )
+            st.altair_chart(pie, use_container_width=True)
+        with col_table:
+            st.dataframe(nation_audience_df, use_container_width=True)
 
 
-# ------------------------------------------------------------
-# 10. 보충이 필요한 학생 확인
-# ------------------------------------------------------------
-st.subheader('보충 학생 대상 학생')
 
-need_study_df = df[df['결과'] == '보충']
+with tab3:
+    left, right = st.columns(2)
 
-if len(need_study_df) == 0:
-    st.success('보충 학습이 필요한 학생이 없습니다.')
-else:
-    st.warning(f'보충 학습이 필요한 학생은 {len(need_study_df)}명입니다.')
-    st.dataframe(need_study_df, use_container_width=True)
+    with left:
+        st.subheader('국가별 매출액')
+        if nation_sales_df.empty:
+            st.info('선택한 조건에 해당하는 데이터가 없습니다.')
+        else:
+            nation_chart = (
+                alt.Chart(nation_sales_df)
+                .mark_bar(color='#3b82f6')
+                .encode(
+                    x=alt.X(
+                        '국가그룹:N',
+                        title='국가',
+                        sort=['한국', '미국', '기타'],
+                    ),
+                    y=alt.Y('매출액:Q', title='매출액'),
+                    tooltip=['국가그룹', '매출액'],
+                )
+                .properties(height=360)
+            )
+            st.altair_chart(nation_chart, use_container_width=True)
+            st.dataframe(nation_sales_df, use_container_width=True)
 
-# ------------------------------------------------------------
-# 11. 간단한 분석 문장 출력
-# ------------------------------------------------------------
-
-
-# ------------------------------------------------------------
-# 12. 확장 코드 보기
-# ------------------------------------------------------------
-
-with st.expander('확장 부분'):
-    st.write(
-    '''
-    확장 가능한 부분입니다.
-    확인해보세요
-    ''')
+    with right:
+        st.subheader('장르별 매출액')
+        if genre_sales_df.empty:
+            st.info('선택한 조건에 해당하는 데이터가 없습니다.')
+        else:
+            genre_chart = (
+                alt.Chart(genre_sales_df)
+                .mark_bar(color='#3b82f6')
+                .encode(
+                    x=alt.X('장르:N', title='장르', sort='-y'),
+                    y=alt.Y('매출액:Q', title='매출액'),
+                    tooltip=['장르', '매출액'],
+                )
+                .properties(height=360)
+            )
+            st.altair_chart(genre_chart, use_container_width=True)
+            st.dataframe(genre_sales_df, use_container_width=True)
