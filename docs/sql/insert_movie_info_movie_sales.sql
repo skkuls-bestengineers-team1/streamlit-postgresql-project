@@ -1,19 +1,17 @@
-- 1) month 컬럼 추가
-ALTER TABLE movie_info.movie_sales
-    ADD COLUMN month VARCHAR(7);  -- '2026-07' 형태로 저장
+-- ============================================================
+-- MOVIE_SALES 데이터 삽입
+-- ============================================================
 
--- 2) 기존 PK(movie_id) 제약 삭제
-ALTER TABLE movie_info.movie_sales
-    DROP CONSTRAINT pk_movie_sales;
+-- [변경사항 2026-08-01]
+-- month 컬럼과 (movie_id, month) 복합 기본키는
+-- create_database_etc.sql의 CREATE TABLE 정의에 이미 반영되어 있으므로
+-- 이 파일에서는 별도의 ALTER TABLE 구문을 실행하지 않습니다.
 
--- 3) 새 복합 PK로 재설정 (movie_id, month)
-ALTER TABLE movie_info.movie_sales
-    ADD CONSTRAINT pk_movie_sales
-    PRIMARY KEY (movie_id, month);
-
-- monthly_info_final.csv 전체 기준 movie_sales 삽입 (movie_id, month 복합 PK)
--- movie_master(34개 영화)에 매칭되는 행만 삽입, 매칭 안 되는 영화는 제외됨
+-- monthly_info_final.csv 전체 기준 movie_sales 삽입
+-- movie_master(34개 영화)에 매칭되는 행만 삽입
 -- 총 INSERT 행 수: 52 (전체 70행 중)
+-- 2026년 7월 데이터는 영화코드 누락 방지를 위해 DB에 보관하며,
+-- 대시보드 분석 범위는 backend.py에서 2026년 1월~6월로 제한합니다.
 
 INSERT INTO movie_info.movie_sales (
     movie_id,

@@ -3,9 +3,8 @@ insert_movie_info_movie_code.sql
 source : /data/kobis_movies_20260101_20260801
 */
 
-SELECT --count(*),
-	mc.*
-FROM movie_info.movie_code as mc;
+-- SELECT --count(*), mc.*
+-- FROM movie_info.movie_code as mc;
 
 INSERT INTO movie_info.movie_code (
     movie_id,

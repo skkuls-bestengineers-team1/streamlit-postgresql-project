@@ -1,11 +1,11 @@
-select *
-from movie_info.movie_master;
+-- select *
+-- from movie_info.movie_master;
 
 INSERT INTO movie_info.movie_master (
     movie_id,
     movie_name,
     movie_name_en,
-    movie_name,
+    release_date,
     production_year,
     movie_type,
     genre_production_status,
