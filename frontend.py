@@ -12,11 +12,7 @@ from backend import (
 )
 
 
-'''
-아래 강사님께서 작성해주신 주석 참고하여 작성 부탁드립니다.
 
-데이터 로딩(loading) 시 null or '' or "" 밸리데이션 처리 부탁드립니다.
-'''
 
 # ------------------------------------------------------------
 # 1. 페이지 기본 설정
@@ -35,7 +31,7 @@ st.caption('월별 관객 · 국가별 관객 · 국가/장르별 매출 시각�
 
 
 
-st.sidebar.header('데이터 필터링')
+st.sidebar.header('월 범위와 장르를 선택하세요')
 
 try:
     month_options = get_month_list()
@@ -48,7 +44,6 @@ if not month_options:
     st.warning('월 데이터가 없습니다.')
     st.stop()
 
-st.sidebar.info('월 범위 / 장르를 선택하세요')
 
 start_month, end_month = st.sidebar.select_slider(
     '월 범위 선택',
@@ -126,7 +121,7 @@ with tab1:
                 .properties(height=360)
             )
             st.altair_chart(bar, use_container_width=True)
-            st.dataframe(monthly_df, use_container_width=True)
+            st.dataframe(monthly_df, use_container_width=True, hide_index=True)
 
     with right:
         st.subheader('산점도 (스크린수 × 관객수)')
@@ -150,6 +145,7 @@ with tab1:
                     ['월', '영화명', '스크린수', '관객수', '매출액', '대표국적', '장르']
                 ],
                 use_container_width=True,
+                hide_index=True,
             )
 
 
@@ -180,7 +176,7 @@ with tab2:
             )
             st.altair_chart(pie, use_container_width=True)
         with col_table:
-            st.dataframe(nation_audience_df, use_container_width=True)
+            st.dataframe(nation_audience_df, use_container_width=True, hide_index=True)
 
 
 
@@ -200,6 +196,7 @@ with tab3:
                         '국가그룹:N',
                         title='국가',
                         sort=['한국', '미국', '기타'],
+                        axis=alt.Axis(labelAngle=0),
                     ),
                     y=alt.Y('매출액:Q', title='매출액'),
                     tooltip=['국가그룹', '매출액'],
@@ -207,7 +204,7 @@ with tab3:
                 .properties(height=360)
             )
             st.altair_chart(nation_chart, use_container_width=True)
-            st.dataframe(nation_sales_df, use_container_width=True)
+            st.dataframe(nation_sales_df, use_container_width=True, hide_index=True)
 
     with right:
         st.subheader('장르별 매출액')
@@ -225,4 +222,4 @@ with tab3:
                 .properties(height=360)
             )
             st.altair_chart(genre_chart, use_container_width=True)
-            st.dataframe(genre_sales_df, use_container_width=True)
+            st.dataframe(genre_sales_df, use_container_width=True, hide_index=True)
