@@ -1,4 +1,4 @@
-# Movie Information Analysis Dashboard
+# 🎬 Movie Information Analysis Dashboard
 
 SKKU AI CAMPUS Team Project
 
