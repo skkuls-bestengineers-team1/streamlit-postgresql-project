@@ -9,7 +9,7 @@ left outer join movie_info.movie_production b
 on a.movie_id = b.movie_id;
 
 select count(*)
-from movie_info.movie_master as
+FROM movie_info.movie_master AS a
 left outer join movie_info.movie_sales b
 on a.movie_id = b.movie_id;
 
@@ -60,4 +60,4 @@ VALUES
     ('20250482', '신비아파트 10주년 극장판: 한 번 더, 소환', '(주)씨제이이엔엠', DATE '2026-07-31', 'cmj', DATE '2026-07-31', 'cmj'),
     ('20250188', '하트맨', '롯데컬처웍스(주)롯데엔터테인먼트', DATE '2026-07-31', 'cmj', DATE '2026-07-31', 'cmj'),
     ('20249624', '프로젝트 Y', '메가박스중앙(주)  플러스엠 엔터테인먼트', DATE '2026-07-31', 'cmj', DATE '2026-07-31', 'cmj'),
-    ('20256173', '스폰지밥 무비: 네모바지를 찾아서', '롯데컬처웍스(주)롯데엔터테인먼트', DATE '2026-07-31', 'cmj', DATE '2026-07-31', 'cmj');;
+    ('20256173', '스폰지밥 무비: 네모바지를 찾아서', '롯데컬처웍스(주)롯데엔터테인먼트', DATE '2026-07-31', 'cmj', DATE '2026-07-31', 'cmj');
