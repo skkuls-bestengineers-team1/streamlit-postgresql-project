@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import os
-import re
-import sys
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -18,8 +16,11 @@ from dotenv import load_dotenv
 각 함수마다 try-exception 처리 부탁드립니다.
 '''
 
-BASE_DIR = Path(__file__).resolve().parent  # 현재 위치
+BASE_DIR = Path(__file__).resolve().parent #현재 위치
 ENV_PATH = BASE_DIR / '.env'
+
+ANALYSIS_START_MONTH = '2026-01'
+ANALYSIS_END_MONTH = '2026-06'
 
 '''
 @name : loading database config
@@ -29,7 +30,7 @@ ENV_PATH = BASE_DIR / '.env'
 '''
 def load_database_config() -> dict[str, str | int]:
 
-    print('ENV_PATH :', ENV_PATH)
+
     if not ENV_PATH.exists():
         raise FileNotFoundError(
             '.env 파일이 없습니다.'
@@ -66,19 +67,28 @@ def load_database_config() -> dict[str, str | int]:
     }
 
 
-def get_database_connection() -> psycopg.Connection | None:
+def get_database_connection() -> psycopg.Connection:
+    """
+    PostgreSQL 연결 객체를 생성하여 반환합니다.
+    """
 
     try:
         config = load_database_config()
-        print('PostgreSQL 연결을 시작합니다.')
 
         return psycopg.connect(
             **config,
-            row_factory=dict_row
+            row_factory=dict_row,
         )
-    except FileNotFoundError as error:
-        print(f'설정 파일 오류 : {error}')
-        sys.exit(1)
+
+    except (FileNotFoundError, ValueError) as error:
+        raise RuntimeError(
+            f'데이터베이스 설정 오류: {error}'
+        ) from error
+
+    except psycopg.Error as error:
+        raise RuntimeError(
+            f'PostgreSQL 연결 오류: {error}'
+        ) from error
 
 def execute_select(
     query: str,
@@ -114,40 +124,6 @@ def execute_select(
         ) from error        
 
 
-def get_test_data() -> dict[str, Any] | None:
-    config = load_database_config()
-    print('PostgreSQL 연결을 시작합니다.')
-
-    try:
-        with psycopg.connect(
-                **config,
-                row_factory=dict_row
-        ) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    """
-                    select current_time
-                    """
-                )
-
-                return cursor.fetchone()
-
-    except psycopg.Error as error:
-        print(f'[PostgreSQL SQL 오류]: {error}')
-        sys.exit(1)
-
-
-'''
-Backend API 테스트 코드
-'''
-def main():
-    df = get_test_data()
-    print(df)
-
-
-if __name__ == '__main__':
-    main()
-
 
 
 # Frontend용 데이터 API
@@ -155,68 +131,13 @@ if __name__ == '__main__':
 #  송주님이 SQL 조회로 교체해주세요!
 # frontend.py는 아래 함수명/반환 컬럼만 맞으면 그대로 동작합니다!!
 
-DATA_DIR = BASE_DIR / 'docs'
-MONTHLY_CSV = DATA_DIR / 'monthly_boxoffice.csv'
-MOVIE_LIST_CSV = DATA_DIR / 'movie_list.csv'
 
 
-def _normalize_movie_name(value: Any) -> str:
-    return re.sub(r'\s+', '', str(value)).strip()
-
-
-def _to_nation_group(nation: Any) -> str:
-    text = str(nation).strip()
-    if text == '한국':
-        return '한국'
-    if text == '미국':
-        return '미국'
-    return '기타'
-
-
-def _load_monthly() -> pd.DataFrame:
-    df = pd.read_csv(MONTHLY_CSV, encoding='utf-8-sig')
-    df['영화명_key'] = df['영화명'].map(_normalize_movie_name)
-    return df
-
-
-def _load_movie_list() -> pd.DataFrame:
-    df = pd.read_csv(MOVIE_LIST_CSV, encoding='utf-8-sig')
-    df['영화명_key'] = df['영화명'].map(_normalize_movie_name)
-    return df[['영화명_key', '장르']].drop_duplicates(subset=['영화명_key'])
-
-
-def _load_joined() -> pd.DataFrame:
-    monthly = _load_monthly()
-    movies = _load_movie_list()
-    joined = monthly.merge(movies, on='영화명_key', how='left')
-    joined['장르'] = joined['장르'].fillna('미분류')
-    joined['국가그룹'] = joined['대표국적'].map(_to_nation_group)
-    return joined
-
-
-def _filter_frame(
-    df: pd.DataFrame,
-    months: list[str] | None = None,
-    genres: list[str] | None = None,
-) -> pd.DataFrame:
-    filtered = df.copy()
-
-    if months:
-        filtered = filtered[filtered['월'].isin(months)]
-
-
-    if genres:
-        pattern = '|'.join(map(re.escape, genres))
-        filtered = filtered[
-            filtered['장르'].astype(str).str.contains(pattern, na=False)
-        ]
-
-    return filtered
 
 
 def get_month_list() -> list[str]:
     """
-    movie_sales 테이블에 존재하는 월 목록을 반환합니다.
+    분석 기간에 포함되는 월 목록을 반환합니다.
     """
 
     try:
@@ -226,10 +147,17 @@ def get_month_list() -> list[str]:
             FROM movie_info.movie_sales
             WHERE month IS NOT NULL
               AND BTRIM(month) <> ''
+              AND BTRIM(month) BETWEEN %s AND %s
             ORDER BY "월";
         """
 
-        result = execute_select(query)
+        result = execute_select(
+            query,
+            [
+                ANALYSIS_START_MONTH,
+                ANALYSIS_END_MONTH,
+            ],
+        )
 
         if result.empty or '월' not in result.columns:
             return []
@@ -248,37 +176,46 @@ def get_month_list() -> list[str]:
             f'월 목록 조회 오류: {error}'
         ) from error
 
-
 def get_genre_list() -> list[str]:
     """
-    movie_master 테이블의 장르를 분리하여 목록으로 반환합니다.
-
-    예:
-    '액션,스릴러 / 개봉'
-    → '액션', '스릴러'
-
-    '멜로/로맨스 / 개봉'
-    → '멜로/로맨스'
+    분석 기간에 존재하는 영화의 장르 목록을 반환합니다.
     """
 
     try:
         query = r"""
             SELECT DISTINCT
                 BTRIM(genre_table.genre_name) AS "장르"
+
             FROM movie_info.movie_master AS m
+
+            INNER JOIN movie_info.movie_sales AS s
+                ON m.movie_id = s.movie_id
+
             CROSS JOIN LATERAL regexp_split_to_table(
                 regexp_replace(
-                    COALESCE(m.genre_production_status, ''),
+                    COALESCE(
+                        m.genre_production_status,
+                        ''
+                    ),
                     '\s*/\s*[^/]+$',
                     ''
                 ),
                 ','
             ) AS genre_table(genre_name)
-            WHERE BTRIM(genre_table.genre_name) <> ''
+
+            WHERE s.month BETWEEN %s AND %s
+              AND BTRIM(genre_table.genre_name) <> ''
+
             ORDER BY "장르";
         """
 
-        result = execute_select(query)
+        result = execute_select(
+            query,
+            [
+                ANALYSIS_START_MONTH,
+                ANALYSIS_END_MONTH,
+            ],
+        )
 
         if result.empty or '장르' not in result.columns:
             return []
@@ -336,8 +273,11 @@ def _build_common_filters(
         cleaned_months = _clean_filter_values(months)
         cleaned_genres = _clean_filter_values(genres)
 
-        conditions = ['1 = 1']
-        params: list[Any] = []
+        conditions = ['s.month BETWEEN %s AND %s']
+        params: list[Any] = [
+            ANALYSIS_START_MONTH,
+            ANALYSIS_END_MONTH,
+            ]
 
         if cleaned_months:
             conditions.append('s.month = ANY(%s)')
@@ -721,10 +661,14 @@ def get_genre_sales(
         cleaned_genres = _clean_filter_values(genres)
 
         conditions = [
-            "BTRIM(genre_table.genre_name) <> ''"
-        ]
-
-        params: list[Any] = []
+            's.month BETWEEN %s AND %s',
+            "BTRIM(genre_table.genre_name) <> ''",
+            ]
+        
+        params: list[Any] = [
+            ANALYSIS_START_MONTH,
+            ANALYSIS_END_MONTH,
+            ]
 
         if cleaned_months:
             conditions.append(
