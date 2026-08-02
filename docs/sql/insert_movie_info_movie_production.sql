@@ -1,0 +1,51 @@
+
+-- movie_list_filtered.csv 제작정보와 KOBIS 영화코드를 영화명으로 매칭
+-- 총 INSERT 행 수: 34
+
+INSERT INTO movie_info.movie_production (
+    movie_id,
+    movie_name,
+    production_year,
+    production_status,
+    director,
+    production_company,
+    created_at,
+    created_by,
+    updated_at,
+    updated_by
+)
+VALUES
+    ('20252402', '군체', 2025, '개봉', '연상호', '주식회사 와우포인트,주식회사 스마일게이트,미드나잇스튜디오 주식회사', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20247648', '내이름은', 2025, '개봉', '정지영', '㈜렛츠필름,(주)아우라픽처스', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20242402', '눈동자', 2025, '개봉', '염지호', '(주)드림캡쳐', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20248252', '와일드씽', 2025, '개봉', '손재곤', '(주)어바웃필름', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20254121', '살목지', 2025, '개봉', '이상민', '더램프스튜디오(주)', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20252373', '넘버원', 2025, '개봉', '김태용', '주식회사 세미콜론스튜디오,스튜디오더블엠 주식회사', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20241266', '휴민트', 2025, '개봉', '류승완', '(주)외유내강', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20242837', '왕과사는남자', 2025, '개봉', '장항준', '(주)온다웍스,(주)비에이엔터테인먼트', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20249624', '프로젝트Y', 2025, '개봉', '이환', '클라이맥스 스튜디오(주),주식회사 와우포인트', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20250188', '하트맨', 2025, '개봉', '최원섭', '(주)무비락,(주)라이크엠컴퍼니', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20232662', '삼악도', 2025, '개봉', '채기준', '㈜영화사 주단', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20250489', '슈퍼걸', 2026, '개봉', '크레이그 질레스피', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20263030', '백룸', 2026, '개봉', '케인 파슨스', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20259781', '토이스토리5', 2026, '개봉', '앤드류 스탠튼', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20263512', '이상한과자가게전천당', 2026, '개봉', '박봉섭', '(주)빅오션이엔엠', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20250655', '디스클로저데이', 2026, '개봉', '스티븐 스필버그', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20240532', '짱구', 2025, '개봉', '정우,오성호', '(주)팬엔터테인먼트', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20258236', '만달로리안과그로구', 2026, '개봉', '존 파브로', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20259626', '마이클', 2026, '개봉', '안톤 후쿠아', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20262685', '란12.3', 2026, '개봉', '이명세', '㈜프로덕션에므', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20259791', '악마는프라다를입는다2', 2026, '개봉', '데이빗 프랭클', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20259773', '슈퍼마리오갤럭시', 2026, '개봉', '아론 호바스,마이클 젤레닉', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20192680', '끝장수사', 2026, '개봉', '박철환', '청년필름(주),주식회사 이안픽처스', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20261666', '네가마지막으로남긴노래', 2026, '개봉', '미키 타카히로', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20261906', '명탐정코난:세기말의마술사', 1999, '개봉', '코다마 켄지', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20261782', '프로젝트헤일메리', 2026, '개봉', '필 로드', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20241575', '메소드연기', 2024, '개봉', '이기혁', '(주)런업컴퍼니', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20256283', '호퍼스', 2026, '개봉', '다니엘 총', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20261208', '귀신부르는앱:영', 2025, '개봉', NULL, '(주)하트피플', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20261439', '2024.12.03그날조작된내란,감춰진진실', 2026, '개봉', NULL, NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20261526', '아이엠스타!X프리파라더무비-만남의기적!-', 2025, '개봉', '오오카와 타카히로', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20250878', '노머시:90분', 2025, '개봉', '티무르 베크맘베토브', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20250482', '신비아파트10주년극장판:한번더,소환', 2025, '개봉', '최우석', '(주)씨제이이엔엠', CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj'),
+    ('20256173', '스폰지밥무비:네모바지를찾아서', 2025, '개봉', '데릭 드라이먼', NULL, CURRENT_TIMESTAMP, 'cmj', CURRENT_TIMESTAMP, 'cmj');
