@@ -35,6 +35,14 @@ SKKU AI CAMPUS Team Project
 - 데이터 시각화
 
 ---
+## Visualization Features
+- KPI 대시보드
+- 월별 관객수
+- 스크린수-관객수 산점도
+- 국가별 관객수
+- 국가별 매출액
+- 장르별 매출액
+---
 
 ## Getting Started
 
